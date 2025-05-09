@@ -24,17 +24,38 @@ jobs:
           gcc-arm-linux-gnueabi \
           cpio device-tree-compiler
 
-    # Step 3: Configure kernel build
+    # Step 3: Ensure Environment Variables and Compilers are Correct
+    - name: Validate Environment and Tools
+      run: |
+        echo "Checking GCC and Clang versions..."
+        gcc --version || echo "GCC not installed or not in PATH"
+        clang --version || echo "Clang not installed or not in PATH"
+        echo "Current PATH: $PATH"
+
+    # Step 4: Check Defconfig File
+    - name: Validate Defconfig
+      run: |
+        if [ ! -f arch/arm64/configs/vendor/r8q_eur_openx_defconfig ]; then
+          echo "Defconfig file not found! Please check the file path."
+          exit 1
+        fi
+
+    # Step 5: Preprocess Kconfig Files
+    - name: Preprocess Kconfig Files
+      run: |
+        find . -name "Kconfig" -exec sed -i 's/unsupported_character//g' {} +
+
+    # Step 6: Configure kernel build
     - name: Configure kernel
       run: |
         make O=out ARCH=arm64 vendor/r8q_eur_openx_defconfig # Replace 'vendor/some_defconfig' with actual defconfig
 
-    # Step 4: Build kernel
+    # Step 7: Build kernel with verbose output
     - name: Build kernel
       run: |
-        make -j$(nproc) O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+        make -j$(nproc) O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- V=1
 
-    # Step 5: Save output to artifacts
+    # Step 8: Save output to artifacts
     - name: Upload compiled kernel to artifacts
       uses: actions/upload-artifact@v4
       with:

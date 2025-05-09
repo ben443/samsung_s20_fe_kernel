@@ -1,0 +1,42 @@
+name: Build Kernel
+
+on:
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up required dependencies
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential bc \
+          libncurses-dev bison flex \
+          libssl-dev libelf-dev \
+          gcc-aarch64-linux-gnu \
+          gcc-arm-linux-gnueabi \
+          cpio device-tree-compiler
+
+    # Step 3: Configure kernel build
+    - name: Configure kernel
+      run: |
+        make O=out ARCH=arm64 vendor/r8q_defconfig # Replace 'vendor/some_defconfig' with actual defconfig
+
+    # Step 4: Build kernel
+    - name: Build kernel
+      run: |
+        make -j$(nproc) O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+
+    # Step 5: Save output to artifacts
+    - name: Upload compiled kernel to artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: compiled-kernel
+        path: out/arch/arm64/boot/ # Replace with the actual path to compiled kernel files

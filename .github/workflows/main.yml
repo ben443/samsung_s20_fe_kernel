@@ -24,7 +24,7 @@ jobs:
           gcc-arm-linux-gnueabi \
           cpio device-tree-compiler
 
-    # Step 3: Ensure Environment Variables and Compilers are Correct
+    # Step 3: Ensure Environment Variables and Tools are Correct
     - name: Validate Environment and Tools
       run: |
         echo "Checking GCC and Clang versions..."
